@@ -472,6 +472,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Helper function to escape HTML for attributes
+  function escapeHtml(text) {
+    return text.replace(/"/g, '&quot;');
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -571,13 +576,13 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="share-buttons">
         <span class="share-label">Share:</span>
-        <button class="share-btn twitter-btn" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" title="Share on Twitter">
+        <button class="share-btn twitter-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" title="Share on Twitter">
           <span class="share-icon">🐦</span>
         </button>
-        <button class="share-btn facebook-btn" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" title="Share on Facebook">
+        <button class="share-btn facebook-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" title="Share on Facebook">
           <span class="share-icon">📘</span>
         </button>
-        <button class="share-btn email-btn" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" data-schedule="${formatSchedule(details).replace(/"/g, '&quot;')}" title="Share via Email">
+        <button class="share-btn email-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formatSchedule(details))}" title="Share via Email">
           <span class="share-icon">✉️</span>
         </button>
         <button class="share-btn copy-btn" data-activity="${name}" title="Copy link">
@@ -611,7 +616,7 @@ document.addEventListener("DOMContentLoaded", () => {
     twitterBtn.addEventListener("click", () => handleTwitterShare(name, details.description));
     facebookBtn.addEventListener("click", () => handleFacebookShare(name));
     emailBtn.addEventListener("click", () => handleEmailShare(name, details.description, formatSchedule(details)));
-    copyBtn.addEventListener("click", (e) => handleCopyLink(name, e.target.closest('button')));
+    copyBtn.addEventListener("click", () => handleCopyLink(name, copyBtn));
 
     activitiesList.appendChild(activityCard);
   }
@@ -938,6 +943,8 @@ document.addEventListener("DOMContentLoaded", () => {
     tempInput.setSelectionRange(0, 99999); // For mobile devices
     
     try {
+      // Note: document.execCommand('copy') is deprecated but intentionally used here
+      // as a fallback for older browsers where the Clipboard API is not available
       const successful = document.execCommand('copy');
       showCopyFeedback(button, successful);
     } catch (err) {
