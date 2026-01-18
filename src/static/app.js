@@ -472,11 +472,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Helper function to escape HTML for attributes
-  function escapeHtml(text) {
-    return text.replace(/"/g, '&quot;');
-  }
-
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -576,16 +571,16 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="share-buttons">
         <span class="share-label">Share:</span>
-        <button class="share-btn twitter-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" title="Share on Twitter">
+        <button class="share-btn twitter-btn" title="Share on Twitter">
           <span class="share-icon">🐦</span>
         </button>
-        <button class="share-btn facebook-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" title="Share on Facebook">
+        <button class="share-btn facebook-btn" title="Share on Facebook">
           <span class="share-icon">📘</span>
         </button>
-        <button class="share-btn email-btn" data-activity="${name}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formatSchedule(details))}" title="Share via Email">
+        <button class="share-btn email-btn" title="Share via Email">
           <span class="share-icon">✉️</span>
         </button>
-        <button class="share-btn copy-btn" data-activity="${name}" title="Copy link">
+        <button class="share-btn copy-btn" title="Copy link">
           <span class="share-icon">🔗</span>
         </button>
       </div>
@@ -940,11 +935,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Select and copy the text
     tempInput.select();
-    tempInput.setSelectionRange(0, 99999); // For mobile devices
+    tempInput.setSelectionRange(0, tempInput.value.length);
     
     try {
-      // Note: document.execCommand('copy') is deprecated but intentionally used here
-      // as a fallback for older browsers where the Clipboard API is not available
+      // Note: document.execCommand('copy') is deprecated as of 2020 but used here
+      // as a fallback for older browsers (IE 11, pre-2021 Safari) where the 
+      // Clipboard API is not available. Can be removed when support for legacy browsers ends.
       const successful = document.execCommand('copy');
       showCopyFeedback(button, successful);
     } catch (err) {
