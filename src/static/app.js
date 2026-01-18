@@ -569,6 +569,21 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <button class="share-btn twitter-btn" title="Share on Twitter">
+          <span class="share-icon">🐦</span>
+        </button>
+        <button class="share-btn facebook-btn" title="Share on Facebook">
+          <span class="share-icon">📘</span>
+        </button>
+        <button class="share-btn email-btn" title="Share via Email">
+          <span class="share-icon">✉️</span>
+        </button>
+        <button class="share-btn copy-btn" title="Copy link">
+          <span class="share-icon">🔗</span>
+        </button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +601,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    const twitterBtn = activityCard.querySelector(".twitter-btn");
+    const facebookBtn = activityCard.querySelector(".facebook-btn");
+    const emailBtn = activityCard.querySelector(".email-btn");
+    const copyBtn = activityCard.querySelector(".copy-btn");
+
+    twitterBtn.addEventListener("click", () => handleTwitterShare(name, details.description));
+    facebookBtn.addEventListener("click", () => handleFacebookShare(name));
+    emailBtn.addEventListener("click", () => handleEmailShare(name, details.description, formatSchedule(details)));
+    copyBtn.addEventListener("click", () => handleCopyLink(name, copyBtn));
 
     activitiesList.appendChild(activityCard);
   }
@@ -860,6 +886,90 @@ document.addEventListener("DOMContentLoaded", () => {
     setDayFilter,
     setTimeRangeFilter,
   };
+
+  // Social sharing functions
+  function handleTwitterShare(activityName, description) {
+    const url = `${window.location.origin}${window.location.pathname}`;
+    const text = `Check out ${activityName} at Mergington High School! ${description}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
+  }
+
+  function handleFacebookShare(activityName) {
+    const url = `${window.location.origin}${window.location.pathname}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(facebookUrl, '_blank', 'width=550,height=420');
+  }
+
+  function handleEmailShare(activityName, description, schedule) {
+    const subject = `Check out ${activityName} at Mergington High School`;
+    const body = `I thought you might be interested in this activity at Mergington High School!\n\nActivity: ${activityName}\n\nDescription: ${description}\n\nSchedule: ${schedule}\n\nVisit ${window.location.origin}${window.location.pathname} to learn more and register!`;
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  }
+
+  function handleCopyLink(activityName, button) {
+    const url = `${window.location.origin}${window.location.pathname}`;
+    
+    // Use the modern clipboard API if available
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        showCopyFeedback(button, true);
+      }).catch(() => {
+        // Fallback for clipboard API failure
+        fallbackCopyLink(url, button);
+      });
+    } else {
+      // Fallback for older browsers
+      fallbackCopyLink(url, button);
+    }
+  }
+
+  function fallbackCopyLink(url, button) {
+    // Create a temporary input element
+    const tempInput = document.createElement('input');
+    tempInput.value = url;
+    tempInput.style.position = 'absolute';
+    tempInput.style.left = '-9999px';
+    document.body.appendChild(tempInput);
+    
+    // Select and copy the text
+    tempInput.select();
+    tempInput.setSelectionRange(0, tempInput.value.length);
+    
+    try {
+      // Note: document.execCommand('copy') is deprecated as of 2020 but used here
+      // as a fallback for older browsers (IE 11, pre-2021 Safari) where the 
+      // Clipboard API is not available. Can be removed when support for legacy browsers ends.
+      const successful = document.execCommand('copy');
+      showCopyFeedback(button, successful);
+    } catch (err) {
+      showCopyFeedback(button, false);
+    }
+    
+    document.body.removeChild(tempInput);
+  }
+
+  function showCopyFeedback(button, success) {
+    const originalIcon = button.querySelector('.share-icon').textContent;
+    const iconElement = button.querySelector('.share-icon');
+    
+    if (success) {
+      iconElement.textContent = '✓';
+      button.style.backgroundColor = 'var(--success)';
+      showMessage('Link copied to clipboard!', 'success');
+    } else {
+      iconElement.textContent = '✗';
+      button.style.backgroundColor = 'var(--error)';
+      showMessage('Failed to copy link', 'error');
+    }
+    
+    // Reset after 2 seconds
+    setTimeout(() => {
+      iconElement.textContent = originalIcon;
+      button.style.backgroundColor = '';
+    }, 2000);
+  }
 
   // Initialize app
   checkAuthentication();
